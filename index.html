@@ -139,3 +139,21 @@
                     updatePos();
                     if(p1_pos >= 90) end(1); else if(p2_pos >= 90) end(2); else newSoal(p);
                 };
+                div.appendChild(b);
+            });
+        }
+
+        function updatePos() {
+            document.getElementById('p1_char').style.bottom = p1_pos + "%";
+            document.getElementById('p2_char').style.bottom = p2_pos + "%";
+        }
+
+        function end(p) {
+            alert(`Pemain ${p} Menang! 🏆`);
+            location.reload();
+        }
+
+        function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+    </script>
+</body>
+</html>
