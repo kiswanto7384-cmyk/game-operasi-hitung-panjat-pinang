@@ -17,31 +17,44 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* --- POHON & ARENA --- */
+        /* --- POHON & ARENA (DITINGGIKAN POSISINYA) --- */
+        .pole-container {
+            position: absolute; left: 50%; bottom: 250px; /* Diangkat agar tidak tertutup papan */
+            transform: translateX(-50%); width: 200px; height: 60vh; z-index: 10;
+        }
+
         .pole-center {
-            position: absolute; left: 50%; bottom: 80px; transform: translateX(-50%);
-            width: 40px; height: 60vh; background: #5d4037;
+            position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+            width: 40px; height: 100%; background: #5d4037 url('https://www.transparenttextures.com/patterns/dark-wood.png');
             border-radius: 20px; box-shadow: inset -10px 0 10px rgba(0,0,0,0.4);
-            border: 4px solid #3e2723; z-index: 10;
+            border: 4px solid #3e2723;
         }
 
         .puncak-hadiah {
-            position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+            position: absolute; top: -90px; left: 50%; transform: translateX(-50%);
             width: 250px; text-align: center;
         }
-        .item-hadiah { font-size: 45px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        .item-hadiah { font-size: 40px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); display: inline-block; margin: 0 5px; }
 
         .clomber {
-            position: absolute; width: 70px; height: 70px;
+            position: absolute; width: 80px; height: 80px;
             background-size: contain; background-repeat: no-repeat;
             transition: bottom 0.4s ease-out; z-index: 20;
         }
-        #p1_char { background-image: url('https://cdn-icons-png.flaticon.com/512/3997/3997839.png'); left: -70px; }
-        #p2_char { background-image: url('https://cdn-icons-png.flaticon.com/512/3997/3997863.png'); right: -70px; }
+        /* Gambar realistik anak SD memanjat */
+        #p1_char { background-image: url('https://cdn-icons-png.flaticon.com/512/3997/3997839.png'); left: -75px; }
+        #p2_char { background-image: url('https://cdn-icons-png.flaticon.com/512/3997/3997863.png'); right: -75px; }
 
-        /* --- PANEL JAWABAN (Hanya muncul saat main) --- */
+        /* --- PANEL JAWABAN (FIXED DI BAWAH, TRANSPARAN SEDIKIT) --- */
         #game-ui { display: none; }
-        .ans-btn { cursor: pointer; touch-action: manipulation; }
+        .answer-panel-container {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 240px; background: rgba(255, 255, 255, 0.7); /* Transparan dikit agar tembus pandang */
+            backdrop-filter: blur(5px); z-index: 50; padding: 20px;
+            border-top: 4px solid #e2e8f0;
+        }
+
+        .ans-btn { cursor: pointer; touch-action: manipulation; transition: all 0.1s; }
         .ans-btn:active { transform: scale(0.9); }
         
         .grass { position: fixed; bottom: 0; width: 100%; height: 60px; background: #2e7d32; z-index: 5; }
@@ -50,33 +63,39 @@
 <body>
 
     <div id="setup">
-        <h1 class="text-5xl font-black text-orange-600 mb-2 italic">DUEL PANJAT PINANG</h1>
-        <p class="text-xl font-bold text-blue-900 mb-8">Pilih Level untuk Memulai:</p>
+        <h1 class="text-5xl font-black text-orange-600 mb-2 italic drop-shadow">DUEL PANJAT PINANG PRO</h1>
+        <p class="text-xl font-bold text-blue-900 mb-10">Balapan Ambil Hadiah & Panjat Pohon Realistik! 🎁🚲🏆</p>
         
-        <div class="grid grid-cols-1 gap-4 w-64">
-            <button onclick="start(1)" class="bg-green-500 text-white p-6 rounded-2xl font-black text-2xl border-b-8 border-green-700 active:border-0">MUDAH</button>
-            <button onclick="start(2)" class="bg-yellow-500 text-white p-6 rounded-2xl font-black text-2xl border-b-8 border-yellow-700 active:border-0">SEDANG</button>
-            <button onclick="start(3)" class="bg-red-500 text-white p-6 rounded-2xl font-black text-2xl border-b-8 border-red-700 active:border-0">SULIT</button>
+        <div class="grid grid-cols-1 gap-4 w-64 bg-blue-50 p-6 rounded-3xl border-2 border-blue-200 shadow-xl">
+            <h3 class="text-xs font-black uppercase text-blue-700 mb-2 text-center">Pilih Level:</h3>
+            <button onclick="start(1)" class="bg-green-500 text-white p-6 rounded-2xl font-black text-2xl border-b-8 border-green-700 active:border-0 transition-all">MUDAH</button>
+            <button onclick="start(2)" class="bg-yellow-500 text-white p-6 rounded-2xl font-black text-2xl border-b-8 border-yellow-700 active:border-0 transition-all">SEDANG</button>
+            <button onclick="start(3)" class="bg-red-500 text-white p-6 rounded-2xl font-black text-2xl border-b-8 border-red-700 active:border-0 transition-all">SULIT</button>
         </div>
     </div>
 
     <div id="game-arena" class="relative w-full h-screen">
-        <div class="pole-center">
-            <div class="puncak-hadiah">
-                <span class="item-hadiah">🚲</span><span class="item-hadiah">🏆</span><span class="item-hadiah">🎁</span>
+        
+        <div class="pole-container">
+            <div class="pole-center">
+                <div class="puncak-hadiah">
+                    <span class="item-hadiah">🚲</span><span class="item-hadiah">🏆</span><span class="item-hadiah">🎁</span>
+                </div>
+                <div id="p1_char" class="clomber" style="bottom: 0;"></div>
+                <div id="p2_char" class="clomber" style="bottom: 0;"></div>
             </div>
-            <div id="p1_char" class="clomber" style="bottom: 0;"></div>
-            <div id="p2_char" class="clomber" style="bottom: 0;"></div>
         </div>
 
         <div id="game-ui">
-            <div class="fixed bottom-10 left-0 right-0 grid grid-cols-2 gap-8 px-10 z-50">
-                <div class="bg-blue-600 p-4 rounded-3xl shadow-2xl border-4 border-white">
-                    <div id="q1" class="bg-white text-3xl font-black text-center p-3 rounded-xl mb-3">...</div>
+            <div class="answer-panel-container grid grid-cols-2 gap-8">
+                <div class="bg-blue-600/90 p-4 rounded-3xl shadow-2xl border-4 border-white flex flex-col justify-center">
+                    <div class="absolute top-2 left-4 text-[10px] font-bold text-white uppercase">Siswa 1</div>
+                    <div id="q1" class="bg-white text-3xl font-black text-center p-3 rounded-xl mb-3 text-gray-800">...</div>
                     <div id="opt1" class="grid grid-cols-2 gap-2"></div>
                 </div>
-                <div class="bg-red-600 p-4 rounded-3xl shadow-2xl border-4 border-white">
-                    <div id="q2" class="bg-white text-3xl font-black text-center p-3 rounded-xl mb-3">...</div>
+                <div class="bg-red-600/90 p-4 rounded-3xl shadow-2xl border-4 border-white flex flex-col justify-center">
+                    <div class="absolute top-2 right-4 text-[10px] font-bold text-white uppercase">Siswa 2</div>
+                    <div id="q2" class="bg-white text-3xl font-black text-center p-3 rounded-xl mb-3 text-gray-800">...</div>
                     <div id="opt2" class="grid grid-cols-2 gap-2"></div>
                 </div>
             </div>
@@ -121,7 +140,7 @@
             div.innerHTML = "";
             opts.forEach(o => {
                 const b = document.createElement('button');
-                b.className = "bg-white text-gray-800 text-xl font-black py-4 rounded-xl shadow ans-btn";
+                b.className = "bg-white text-gray-800 text-xl font-black py-3 rounded-xl shadow ans-btn";
                 b.innerText = o;
                 b.onclick = () => {
                     const correct = (p === 1) ? s1.ans : s2.ans;
@@ -133,8 +152,8 @@
                     document.getElementById('p1_char').style.bottom = p1_pos + "%";
                     document.getElementById('p2_char').style.bottom = p2_pos + "%";
                     
-                    if(p1_pos >= 90) { alert("Siswa 1 MENANG! 🏆"); location.reload(); }
-                    else if(p2_pos >= 90) { alert("Siswa 2 MENANG! 🏆"); location.reload(); }
+                    if(p1_pos >= 90) { alert("Siswa 1 (👦Paman) MENANG! 🏆 Berhasil mengambil hadiah!"); location.reload(); }
+                    else if(p2_pos >= 90) { alert("Siswa 2 (👧Siti) MENANG! 🏆 Berhasil mengambil hadiah!"); location.reload(); }
                     else newSoal(p);
                 };
                 div.appendChild(b);
