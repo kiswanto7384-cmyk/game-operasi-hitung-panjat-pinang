@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panjat Pinang Matematika - SDN 169</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #87ceeb; font-family: 'Arial', sans-serif; overflow: hidden; }
+        .pole { 
+            width: 30px; height: 70vh; background: #8b4513; 
+            margin: 0 auto; position: relative; border-radius: 15px;
+            border-left: 5px solid #5d2e0a;
+        }
+        .prize { 
+            position: absolute; top: -50px; left: -35px; font-size: 50px; 
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+        .player {
+            position: absolute; bottom: 0; left: 50%; 
+            transform: translateX(-50%); transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 40px; white-space: nowrap; text-align: center;
+        }
+        .player-label {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            background: white; color: black; font-size: 10px; font-weight: bold;
+            padding: 2px 5px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .cloud { position: absolute; opacity: 0.7; z-index: -1; animation: drift 20s linear infinite; }
+        @keyframes drift { from { transform: translateX(-100px); } to { transform: translateX(100vw); } }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+
+    <div id="setup" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center p-6">
+        <h1 class="text-4xl font-black text-orange-600 mb-8 uppercase tracking-tighter text-center">🚩 Lomba Panjat Pinang <br><span class="text-blue-600">Matematika</span></h1>
+        
+        <div class="bg-gray-100 p-6 rounded-3xl w-full max-w-md shadow-xl border-4 border-white">
+            <label class="block font-bold mb-2">Pilih Jumlah Siswa:</label>
+            <select id="num-players" class="w-full p-3 rounded-xl mb-4 border-2 border-gray-300">
+                <option value="1">1 Orang (Latihan)</option>
+                <option value="2">2 Orang (Duel)</option>
+                <option value="3">3 Orang (Ramai)</option>
+                <option value="4">4 Orang (Grup)</option>
+            </select>
+
+            <label class="block font-bold mb-2">Pilih Tingkatan:</label>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <button onclick="setLevel(1)" class="lvl-btn bg-green-500 text-white p-2 rounded-lg font-bold border-b-4 border-green-700">MUDAH</button>
+                <button onclick="setLevel(2)" class="lvl-btn bg-yellow-500 text-white p-2 rounded-lg font-bold border-b-4 border-yellow-700">SEDANG</button>
+                <button onclick="setLevel(3)" class="lvl-btn bg-red-500 text-white p-2 rounded-lg font-bold border-b-4 border-red-700">SULIT</button>
+            </div>
+
+            <label class="block font-bold mb-2">Operasi Hitung:</label>
+            <div class="flex gap-2 flex-wrap mb-6">
+                <label class="bg-white p-2 rounded-lg border-2 flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="+" checked class="op-check"> Tambah (+)
+                </label>
+                <label class="bg-white p-2 rounded-lg border-2 flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="-" checked class="op-check"> Kurang (-)
+                </label>
+                <label class="bg-white p-2 rounded-lg border-2 flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="*" class="op-check"> Kali (×)
+                </label>
+            </div>
+
+            <button onclick="startGame()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xl hover:bg-blue-700 transition shadow-lg">MULAI LOMBA! 🚀</button>
+        </div>
+    </div>
+
+    <div id="game-ui" class="hidden w-full h-screen flex flex-col items-center">
+        <div class="flex gap-12 justify-center mt-20" id="poles-container"></div>
+        
+        <div class="fixed bottom-10 bg-white p-6 rounded-[2.5rem] shadow-2xl border-4 border-blue-500 w-[90%] max-w-xl text-center">
+            <div id="turn-indicator" class="text-xs font-black text-blue-500 mb-2 uppercase">Giliran Siswa 1</div>
+            <div id="question" class="text-4xl font-black text-gray-800 mb-6">1 + 1 = ?</div>
+            <div id="options" class="grid grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+
+    <script>
+        let numPlayers = 1, level = 1, players = [], activePlayer = 0, currentSoal = {};
+        const avatars = ['👦', '👧', '🧑‍🎓', '👨‍🚀', '🐱', '🐸'];
+        const prizes = ['🎁', '💰', '🏆', '🚲', '🍕'];
+
+        function setLevel(l) { level = l; }
+
+        function startGame() {
+            numPlayers = parseInt(document.getElementById('num-players').value);
+            const ops = Array.from(document.querySelectorAll('.op-check:checked')).map(c => c.value);
+            if(ops.length === 0) return alert("Pilih minimal satu operasi!");
+
+            players = [];
+            const container = document.getElementById('poles-container');
+            container.innerHTML = "";
+
+            for(let i=0; i<numPlayers; i++) {
+                players.push({ id: i+1, pos: 0, avatar: avatars[i] });
+                container.innerHTML += `
+                    <div class="flex flex-col items-center">
+                        <div class="pole">
+                            <div class="prize">${prizes[Math.floor(Math.random()*prizes.length)]}</div>
+                            <div id="p-${i}" class="player">
+                                <div class="player-label text-[8px]">Siswa ${i+1}</div>
+                                ${avatars[i]}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            activePlayer = 0;
+            generateSoal();
+        }
+
+        function generateSoal() {
+            const ops = Array.from(document.querySelectorAll('.op-check:checked')).map(c => c.value);
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            let n1, n2, ans;
+
+            if(level === 1) { n1 = rand(1,10); n2 = rand(1,10); }
+            else if(level === 2) { n1 = rand(10,50); n2 = rand(10,50); }
+            else { n1 = rand(50,200); n2 = rand(50,200); }
+
+            if(op === '+') ans = n1 + n2;
+            else if(op === '-') { n1 = Math.max(n1, n2); n2 = Math.min(n1, n2); ans = n1 - n2; }
+            else if(op === '*') { n1 = rand(2,10); n2 = rand(2,12); ans = n1 * n2; }
+
+            currentSoal = { n1, n2, op: op === '*' ? '×' : op, ans };
+            document.getElementById('turn-indicator').innerText = `GILIRAN SISWA ${activePlayer + 1} (${players[activePlayer].avatar})`;
+            document.getElementById('question').innerText = `${n1} ${currentSoal.op} ${n2} = ?`;
+            
+            // Generate Options
+            const opsis = [ans, ans + rand(1,5), ans - rand(1,5)];
+            const unique = [...new Set(opsis)].sort(() => Math.random() - 0.5);
+            
+            const optDiv = document.getElementById('options');
+            optDiv.innerHTML = "";
+            unique.forEach(o => {
+                const btn = document.createElement('button');
+                btn.className = "bg-gray-100 hover:bg-blue-100 p-4 rounded-2xl font-black text-2xl border-b-4 border-gray-300 transition-all";
+                btn.innerText = o;
+                btn.onclick = () => checkAnswer(o);
+                optDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(chosen) {
+            if(chosen === currentSoal.ans) {
+                players[activePlayer].pos += 10;
+                document.getElementById(`p-${activePlayer}`).style.bottom = players[activePlayer].pos + "%";
+                
+                if(players[activePlayer].pos >= 90) {
+                    alert(`SELAMAT! SISWA ${activePlayer + 1} SAMPAI DI PUNCAK! 🏆`);
+                    location.reload();
+                    return;
+                }
+            } else {
+                players[activePlayer].pos = Math.max(0, players[activePlayer].pos - 5);
+                document.getElementById(`p-${activePlayer}`).style.bottom = players[activePlayer].pos + "%";
+            }
+
+            activePlayer = (activePlayer + 1) % numPlayers;
+            generateSoal();
+        }
+
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    </script>
+</body>
+</html>
